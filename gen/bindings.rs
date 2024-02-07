@@ -450,6 +450,27 @@ extern "C" {
     ) -> usize;
 }
 extern "C" {
+    #[doc = " Mesh simplifier which locks a given list of vertices"]
+    #[doc = " Works like meshopt_simplify, but accept a list of vertices not allowed to collapse. Other vertices are still allowed to collapse onto locked vertices."]
+    #[doc = ""]
+    #[doc = " locked_vertices points to an array of vertex indices, denoting which vertices are to be locked. Can be NULL if locked_vertex_count is 0."]
+    #[doc = " locked_vertex_count number of elements in the locked_vertices array."]
+    pub fn meshopt_simplifyWithLocks(
+        destination: *mut ::std::os::raw::c_uint,
+        indices: *const ::std::os::raw::c_uint,
+        index_count: usize,
+        vertex_positions: *const f32,
+        vertex_count: usize,
+        vertex_positions_stride: usize,
+        locked_vertices: *const ::std::os::raw::c_uint,
+        locked_vertex_count: usize,
+        target_index_count: usize,
+        target_error: f32,
+        options: ::std::os::raw::c_uint,
+        result_error: *mut f32,
+    ) -> usize;
+}
+extern "C" {
     #[doc = " Experimental: Mesh simplifier with attribute metric"]
     #[doc = " The algorithm ehnahces meshopt_simplify by incorporating attribute values into the error metric used to prioritize simplification order; see meshopt_simplify documentation for details."]
     #[doc = " Note that the number of attributes affects memory requirements and running time; this algorithm requires ~1.5x more memory and time compared to meshopt_simplify when using 4 scalar attributes."]
@@ -468,6 +489,8 @@ extern "C" {
         vertex_attributes_stride: usize,
         attribute_weights: *const f32,
         attribute_count: usize,
+        locked_vertices: *const ::std::os::raw::c_uint,
+        locked_vertex_count: usize,
         target_index_count: usize,
         target_error: f32,
         options: ::std::os::raw::c_uint,
@@ -693,7 +716,7 @@ extern "C" {
     #[doc = " For backface culling with orthographic projection, use the following formula to reject backfacing clusters:"]
     #[doc = "   dot(view, cone_axis) >= cone_cutoff"]
     #[doc = ""]
-    #[doc = " For perspective projection, you can the formula that needs cone apex in addition to axis & cutoff:"]
+    #[doc = " For perspective projection, you can use the formula that needs cone apex in addition to axis & cutoff:"]
     #[doc = "   dot(normalize(cone_apex - camera_position), cone_axis) >= cone_cutoff"]
     #[doc = ""]
     #[doc = " Alternatively, you can use the formula that doesn't need cone apex and uses bounding sphere instead:"]
