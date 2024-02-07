@@ -40,6 +40,7 @@ pub fn simplify(
 /// Reduces the number of triangles in the mesh, attempting to preserve mesh
 /// appearance as much as possible.
 ///
+/// When passing `locked_vertices`, those vertices will be considered as locked.
 /// The resulting index buffer references vertices from the original vertex buffer.
 ///
 /// If the original vertex data isn't required, creating a compact vertex buffer
@@ -50,6 +51,7 @@ pub fn simplify_decoder<T: DecodePosition>(
     target_count: usize,
     target_error: f32,
     options: u32,
+    locked_vertices: Option<&[u32]>,
 ) -> Vec<u32> {
     let positions = vertices
         .iter()
@@ -57,18 +59,35 @@ pub fn simplify_decoder<T: DecodePosition>(
         .collect::<Vec<[f32; 3]>>();
     let mut result: Vec<u32> = vec![0; indices.len()];
     let index_count = unsafe {
-        ffi::meshopt_simplify(
-            result.as_mut_ptr().cast(),
-            indices.as_ptr().cast(),
-            indices.len(),
-            positions.as_ptr().cast(),
-            positions.len(),
-            mem::size_of::<f32>() * 3,
-            target_count,
-            target_error,
-            options,
-            std::ptr::null_mut(),
-        )
+        if let Some(&vertices_to_lock) = locked_vertices.as_ref() {
+            ffi::meshopt_simplifyWithLocks(
+                result.as_mut_ptr().cast(),
+                indices.as_ptr().cast(),
+                indices.len(),
+                positions.as_ptr().cast(),
+                positions.len(),
+                mem::size_of::<f32>() * 3,
+                vertices_to_lock.as_ptr().cast(),
+                vertices_to_lock.len(),
+                target_count,
+                target_error,
+                options,
+                std::ptr::null_mut(),
+            )
+        } else {
+            ffi::meshopt_simplify(
+                result.as_mut_ptr().cast(),
+                indices.as_ptr().cast(),
+                indices.len(),
+                positions.as_ptr().cast(),
+                positions.len(),
+                mem::size_of::<f32>() * 3,
+                target_count,
+                target_error,
+                options,
+                std::ptr::null_mut(),
+            )
+        }
     };
     result.resize(index_count, 0u32);
     result
